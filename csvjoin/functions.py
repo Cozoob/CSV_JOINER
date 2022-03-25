@@ -51,12 +51,12 @@ def parse_arguments() -> tuple:
 
 
 def find_index_of_column(header: str, column_name: str) -> int:
-    # -1 means there is no column of the same name
+
     arr = header.split(',')
     try:
         idx = arr.index(column_name)
     except ValueError:
-        idx = -1
+        raise ValueError(f'The name {column_name} does not exist in one of the files!')
 
     return idx
 
@@ -64,7 +64,7 @@ def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: i
 
     if column_index1 == -1 or column_index2 == -1:
         print("oppps")
-        #TODO
+        #TODO DELETE
         pass
 
     new_line = str(line1)
@@ -72,6 +72,7 @@ def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: i
     new_line = new_line.split(',')
 
     new_line2 = str(line2)
+    new_line2 = new_line2.rstrip()
     new_line2 = new_line2.split(',')
     new_line2.remove(new_line2[column_index2])
 
@@ -80,7 +81,7 @@ def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: i
 
     line_to_print = ''
     for _ in range(len(new_line)):
-        line_to_print += '{: >10} '
+        line_to_print += '{: >13} '
 
     print(line_to_print.format(*new_line))
 
@@ -90,12 +91,50 @@ def split_and_strip(line: str) -> [str]:
     new_line = new_line.rstrip()
     return new_line.split(',')
 
+def print_non_inner_join(file, header: str, taken_rows: set, join_type: str, column_index1: int, column_index2: int):
+    file.seek(0, 0)
+    file.readline()
+    line = file.readline()
+
+    # creating NULL line string
+    header = header.split(',')
+    n = len(header)
+    filler = ''
+    for _ in range(n - 1):
+        filler += 'NULL'
+        filler += ','
+    filler += 'NULL'
+
+    counter = 1
+    while line != '':
+        if counter in taken_rows:
+            # print(taken_rows1)
+            # print(taken_rows2)
+            # exit(1)
+            line = file.readline()
+            counter += 1
+            continue
+
+        if join_type == 'left':
+            parse_data_line(line, filler, column_index1, column_index2)
+
+        if join_type == 'right':
+            parse_data_line(filler, line, column_index1, column_index2)
+
+        line = file.readline()
+        counter += 1
+
+
+
 
 def join_files(file_path1: str, file_path2: str, column_name: str, join_type: str):
     """
     The actual main algorithm for printing the joined files.
     """
     try:
+        # Even though I can have left or right join
+        # firstly I need to do inner and after that
+        # I can do the rest if needed
         with open(file_path1) as file1, open(file_path2) as file2:
             header1 = str(file1.readline())
             header2 = str(file2.readline())
@@ -109,9 +148,7 @@ def join_files(file_path1: str, file_path2: str, column_name: str, join_type: st
             taken_rows1 = set()
             taken_rows2 = set()
 
-            count = 0
             i1 = 1
-            # for i1, line1 in enumerate(file1):
             line1 = file1.readline()
             while line1 != '':
 
@@ -120,40 +157,31 @@ def join_files(file_path1: str, file_path2: str, column_name: str, join_type: st
                 i2 = 0
                 line2 = file2.readline()
 
-
-                # for i2, line2 in enumerate(file2):
                 while line2 != '':
                     if i2 == 0:
                         i2 += 1
                         line2 = file2.readline()
                         continue
 
-                    # arr1 = line1.strip()
-                    # arr1 = arr1.split(',')
-                    # print(arr1)
                     arr1 = split_and_strip(line1)
                     arr2 = split_and_strip(line2)
-                    # exit(1)
 
-                    # and arr1[column_index1] != '28'
                     if arr1[column_index1] == arr2[column_index2]:
-                        # exit(1)
                         taken_rows1.add(i1)
                         taken_rows2.add(i2)
                         parse_data_line(line1, line2, column_index1, column_index2)
-                        count += 1
 
                     i2 += 1
                     line2 = file2.readline()
-                    # if i2 == 31:
-                    #     print(arr2)
-                    #     exit(1)
 
                 i1 += 1
                 line1 = file1.readline()
 
+            if join_type == 'left':
+                print_non_inner_join(file1, header2, taken_rows2, join_type, column_index1, column_index2)
 
-
+            if join_type == 'right':
+                print_non_inner_join(file2, header1, taken_rows1, join_type, column_index1, column_index2)
 
 
     except EnvironmentError:
