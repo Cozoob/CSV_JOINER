@@ -1,9 +1,5 @@
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from csvjoin import functions
 
 
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
+    file_path1, file_path2, column_name, join_type = functions.parse_arguments()
