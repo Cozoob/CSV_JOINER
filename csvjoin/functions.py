@@ -5,12 +5,22 @@ import os
 
 
 def check_error_file_path(file_path: str):
+    """
+        Checks if the file path is correct
+        or if the file even exists.
+
+        :param file_path: The path of the CSV file.
+        :type file_path: str
+    """
     if not os.path.isfile(file_path):
         show_instructions()
         raise TypeError(f'{file_path} is not a file path or file does not exist!')
 
 
 def show_instructions():
+    """
+        Prints helpful message (how to use program).
+    """
     print("The command should look like:\n"
           "python3 join.py ./data/Employee.csv ./data/MFG10YearTerminationData.csv Age\n"
           "OR\n"
@@ -20,7 +30,11 @@ def show_instructions():
 
 def parse_arguments() -> tuple:
     """
-    Helpful function to check arguments from the user.
+    Checks arguments from the user.
+
+    :return: The tuple that contains two file paths,
+    column name and type of join.
+    :rtype: tuple
     """
     join_types = {'inner', 'left', 'right'}
     argv = sys.argv
@@ -43,7 +57,7 @@ def parse_arguments() -> tuple:
     check_error_file_path(file_path1)
     check_error_file_path(file_path2)
 
-    if not join_type in join_types:
+    if join_type not in join_types:
         show_instructions()
         raise TypeError(f'{join_type} is not available type of join: inner, left, right')
 
@@ -51,7 +65,16 @@ def parse_arguments() -> tuple:
 
 
 def find_index_of_column(header: str, column_name: str) -> int:
+    """
+        Finds the index of the column with the given name.
 
+        :param header: The header line of the CSV file.
+        :param column_name: The name of the column to find its index.
+        :type header: str
+        :type column_name: str
+        :return: The index of the column.
+        :rtype: int
+    """
     arr = header.split(',')
     try:
         idx = arr.index(column_name)
@@ -60,13 +83,20 @@ def find_index_of_column(header: str, column_name: str) -> int:
 
     return idx
 
+
 def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: int):
+    """
+        Joins and prints the two lines from CSV files.
 
-    if column_index1 == -1 or column_index2 == -1:
-        print("oppps")
-        #TODO DELETE
-        pass
-
+        :param line1: The first line to join.
+        :param line2: The second line to join.
+        :param column_index1: The index of the joining column in the first line.
+        :param column_index2: The index of the joining column in the second line.
+        :type line1: str
+        :type line2: str
+        :type column_index1: int
+        :type column_index2: int
+    """
     new_line = str(line1)
     new_line = new_line.rstrip()
     new_line = new_line.split(',')
@@ -74,9 +104,12 @@ def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: i
     new_line2 = str(line2)
     new_line2 = new_line2.rstrip()
     new_line2 = new_line2.split(',')
-    new_line2.remove(new_line2[column_index2])
 
-    # new_line += tmp[:column_index2-1] + str(line2[column_index2+1:])
+    if column_index2 != -1:
+        new_line2.remove(new_line2[column_index2])
+    else:
+        new_line.remove(new_line[column_index1])
+
     new_line.extend(new_line2)
 
     line_to_print = ''
@@ -87,11 +120,37 @@ def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: i
 
 
 def split_and_strip(line: str) -> [str]:
+    """
+        Copies the string, deletes the \n sign and
+        splits by comma.
+
+        :param line: The line to split and rstrip.
+        :type line: str
+        :return: The array of strings.
+        :rtype: [str]
+   """
     new_line = str(line)
     new_line = new_line.rstrip()
     return new_line.split(',')
 
-def print_non_inner_join(file, header: str, taken_rows: set, join_type: str, column_index1: int, column_index2: int):
+
+def print_non_inner_join(file, header: str, taken_rows: set, join_type: str, column_index: int):
+    """
+        Prints non-inner type of join in order to "fill" NULL values.
+
+        :param file: The handle of the file.
+        :param header: The header of the second file to get the
+        number of the NULLs.
+        :param taken_rows: The set of already printed rows of the file.
+        :param join_type: The type of the join.
+        :param column_index: The column_index to pass it
+        to the parse_data_line function.
+        :type file: TextIO
+        :type header: str
+        :type taken_rows: set
+        :type join_type: str
+        :type column_index: int
+    """
     file.seek(0, 0)
     file.readline()
     line = file.readline()
@@ -108,28 +167,32 @@ def print_non_inner_join(file, header: str, taken_rows: set, join_type: str, col
     counter = 1
     while line != '':
         if counter in taken_rows:
-            # print(taken_rows1)
-            # print(taken_rows2)
-            # exit(1)
             line = file.readline()
             counter += 1
             continue
 
         if join_type == 'left':
-            parse_data_line(line, filler, column_index1, column_index2)
+            parse_data_line(line, filler, -1, column_index)
 
         if join_type == 'right':
-            parse_data_line(filler, line, column_index1, column_index2)
+            parse_data_line(filler, line, column_index, -1)
 
         line = file.readline()
         counter += 1
 
 
-
-
 def join_files(file_path1: str, file_path2: str, column_name: str, join_type: str):
     """
-    The actual main algorithm for printing the joined files.
+        The actual main algorithm for printing the joined files.
+
+        :param file_path1: The path of the first file.
+        :param file_path2: The path of the second file.
+        :param column_name: The name of the column to join on.
+        :param join_type: The type of the join.
+        :type file_path1: str
+        :type file_path2: str
+        :type column_name: str
+        :type join_type: str
     """
     try:
         # Even though I can have left or right join
@@ -143,7 +206,10 @@ def join_files(file_path1: str, file_path2: str, column_name: str, join_type: st
             column_index1 = find_index_of_column(header1, column_name)
             column_index2 = find_index_of_column(header2, column_name)
 
-            parse_data_line(header1, header2, column_index1, column_index2)
+            if join_type == 'right':
+                parse_data_line(header1, header2, column_index1, -1)
+            else:
+                parse_data_line(header1, header2, -1, column_index2)
 
             taken_rows1 = set()
             taken_rows2 = set()
@@ -169,7 +235,7 @@ def join_files(file_path1: str, file_path2: str, column_name: str, join_type: st
                     if arr1[column_index1] == arr2[column_index2]:
                         taken_rows1.add(i1)
                         taken_rows2.add(i2)
-                        parse_data_line(line1, line2, column_index1, column_index2)
+                        parse_data_line(line1, line2, -1, column_index2)
 
                     i2 += 1
                     line2 = file2.readline()
@@ -178,11 +244,10 @@ def join_files(file_path1: str, file_path2: str, column_name: str, join_type: st
                 line1 = file1.readline()
 
             if join_type == 'left':
-                print_non_inner_join(file1, header2, taken_rows2, join_type, column_index1, column_index2)
+                print_non_inner_join(file1, header2, taken_rows2, join_type, column_index2)
 
             if join_type == 'right':
-                print_non_inner_join(file2, header1, taken_rows1, join_type, column_index1, column_index2)
-
+                print_non_inner_join(file2, header1, taken_rows1, join_type, column_index1)
 
     except EnvironmentError:
-        print("oooops")
+        raise EnvironmentError('EnvironmentError occurred!')
