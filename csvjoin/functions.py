@@ -75,6 +75,7 @@ def find_index_of_column(header: str, column_name: str) -> int:
         :return: The index of the column.
         :rtype: int
     """
+    header = header.rstrip()
     arr = header.split(',')
     try:
         idx = arr.index(column_name)
@@ -106,9 +107,9 @@ def parse_data_line(line1: str, line2: str, column_index1: int, column_index2: i
     new_line2 = new_line2.split(',')
 
     if column_index2 != -1:
-        new_line2.remove(new_line2[column_index2])
+        new_line2.pop(column_index2)
     else:
-        new_line.remove(new_line[column_index1])
+        new_line.pop(column_index1)
 
     new_line.extend(new_line2)
 
@@ -235,7 +236,10 @@ def join_files(file_path1: str, file_path2: str, column_name: str, join_type: st
                     if arr1[column_index1] == arr2[column_index2]:
                         taken_rows1.add(i1)
                         taken_rows2.add(i2)
-                        parse_data_line(line1, line2, -1, column_index2)
+                        if join_type == 'right':
+                            parse_data_line(line1, line2, column_index1, -1)
+                        else:
+                            parse_data_line(line1, line2, -1, column_index2)
 
                     i2 += 1
                     line2 = file2.readline()
