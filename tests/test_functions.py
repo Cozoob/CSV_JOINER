@@ -10,16 +10,16 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             functions.parse_arguments()
 
-        sys.argv = ['join.py', '../data/Employee.csv', '../data/turnover.csv']
+        sys.argv = ['join.py', '../data/Employee.csv', '../data/MFG10YearTerminationData.csv']
         with self.assertRaises(TypeError):
             functions.parse_arguments()
 
         # Too many arguments
-        sys.argv = ['join.py', '../data/Employee.csv', '../data/turnover.csv', 'Age', 'left', 'left']
+        sys.argv = ['join.py', '../data/Employee.csv', '../data/MFG10YearTerminationData.csv', 'Age', 'left', 'left']
         with self.assertRaises(TypeError):
             functions.parse_arguments()
 
-        sys.argv = ['join.py', '../data/Employee.csv', '../data/turnover.csv', 'Age', 'left', 'left',
+        sys.argv = ['join.py', '../data/Employee.csv', '../data/MFG10YearTerminationData.csv', 'Age', 'left', 'left',
                     '../data/turnover.csv', 'Age', 'left', 'left']
         with self.assertRaises(TypeError):
             functions.parse_arguments()
@@ -27,15 +27,15 @@ class MyTestCase(unittest.TestCase):
 
     def test_parse_arguments_type_of_join(self):
 
-        sys.argv = ['join.py', '../data/Employee.csv', '../data/turnover.csv', 'Age', 'leftt']
+        sys.argv = ['join.py', '../data/Employee.csv', '../data/MFG10YearTerminationData.csv', 'Age', 'leftt']
         with self.assertRaises(TypeError):
             functions.parse_arguments()
 
-        sys.argv = ['join.py', '../data/Employee.csv', '../data/turnover.csv', 'Age', 'rigt']
+        sys.argv = ['join.py', '../data/Employee.csv', '../data/MFG10YearTerminationData.csv', 'Age', 'rigt']
         with self.assertRaises(TypeError):
             functions.parse_arguments()
 
-        sys.argv = ['join.py', '../data/Employee.csv', '../data/turnover.csv', 'Age', 'down']
+        sys.argv = ['join.py', '../data/Employee.csv', '../data/MFG10YearTerminationData.csv', 'Age', 'down']
         with self.assertRaises(TypeError):
             functions.parse_arguments()
 
