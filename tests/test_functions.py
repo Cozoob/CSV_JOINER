@@ -8,6 +8,11 @@ from io import StringIO
 
 
 class Capturing(list):
+    """
+    Captures the output from the print() function.
+
+    Only for tests.
+    """
     def __enter__(self):
         self._stdout = sys.stdout
         sys.stdout = self._stringio = StringIO()
@@ -77,8 +82,6 @@ class MyTestCase(unittest.TestCase):
             functions.find_index_of_column(header, 'gender')
 
     def test_join(self):
-        # left, right, inner cos zwrocilo co chce plus pusty zbior w inner
-        # wiec 3 pliki tymczasowe testowe z wiadomym srodkiem
 
         # test inner join
         tmp1 = tempfile.NamedTemporaryFile(delete=False)
